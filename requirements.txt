@@ -13,3 +13,4 @@ cryptography
 click
 pymongo
 sqlalchemy
+pytest
