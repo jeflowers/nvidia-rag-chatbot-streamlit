@@ -1,0 +1,15 @@
+streamlit>=1.25.0
+llama-index-core
+llama-index-readers-file
+llama-index-llms-nvidia
+llama-index-embeddings-nvidia
+llama-index-postprocessor-nvidia-rerank
+llama-index-vector-stores-milvus
+python-dotenv
+PyYAML
+python-jose
+passlib
+cryptography
+click
+pymongo
+sqlalchemy
