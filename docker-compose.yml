@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  qnachatbox:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-change_this_password_immediately}
+      - SESSION_EXPIRY_MINUTES=${SESSION_EXPIRY_MINUTES:-30}
+      - MAX_LOGIN_ATTEMPTS=${MAX_LOGIN_ATTEMPTS:-5}
+      - IP_COOLDOWN_MINUTES=${IP_COOLDOWN_MINUTES:-15}
+      - DB_TYPE=${DB_TYPE:-sqlite}
+      - SQLITE_DB_PATH=/app/db/qnachat.db
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/}
+      - MONGODB_DB=${MONGODB_DB:-qnachat}
+    volumes:
+      - ./milvus_demo.db:/app/milvus_demo.db
+      - ./db:/app/db
+      - ./users.yaml:/app/users.yaml
+      - ./user_activity.json:/app/user_activity.json
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+  
+  mongodb:
+    image: mongo:latest
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-root}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-rootpassword}
+    command: ["--auth"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+volumes:
+  mongo_data:
